@@ -1,65 +1,88 @@
 import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <>
+      {/* ── HERO ── */}
+      <section className="relative h-screen max-h-175 w-full overflow-hidden flex items-center justify-center">
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
+          src="/melee.jpg"
+          alt="Mêlée des Gaulois"
+          fill
           priority
+          className="object-cover object-[center_50%]"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+
+        {/* Overlay dégradé */}
+        <div className="absolute inset-0 bg-linear-to-br from-[#000049]/85 via-[#000049]/60 to-[#000049]/30" />
+
+        {/* Contenu */}
+        <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-4xl">
+          <span className="mb-4 inline-block rounded-full border border-[#f368f1]/60 px-4 py-1 text-xs font-bold uppercase tracking-widest text-[#f368f1]">
+            Club de Rugby · Les Gaulois
+          </span>
+
+          <h1 className="text-5xl md:text-7xl font-black uppercase leading-none tracking-tight text-white drop-shadow-2xl">
+            L&apos;esprit du combat,{" "}
+            <br />
+            <span className="text-[#f368f1]">la force du collectif.</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="mt-6 text-lg md:text-xl font-light text-white/80 max-w-xl leading-relaxed">
+            Rejoignez les Gaulois et portez fièrement nos couleurs sur chaque terrain.
           </p>
+
+          <div className="mt-10 flex flex-col sm:flex-row gap-4">
+            <Link
+              href="/infos-pratiques"
+              className="group inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 font-bold text-[#000049] text-sm uppercase tracking-widest shadow-lg hover:bg-[#f368f1] hover:text-white hover:shadow-[#f368f1]/40 hover:shadow-2xl transition-all duration-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+              </svg>
+              Horaires et terrains
+            </Link>
+
+            <a
+              href="https://affiliated-sports.com/fr/collections/les-gaulois-rugby"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-2 rounded-full border-2 border-[#f368f1] px-8 py-4 font-bold text-[#f368f1] text-sm uppercase tracking-widest hover:bg-[#f368f1] hover:text-white hover:shadow-[#f368f1]/40 hover:shadow-2xl transition-all duration-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              Boutique officielle
+            </a>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
+          <span className="text-xs font-bold uppercase tracking-widest text-[#f368f1]">
+            Découvrir
+          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-[#f368f1] animate-bounce"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* ── SECTION SUIVANTE ── */}
+      <section className="bg-[#f8fafc] w-full px-6 py-24 text-center">
+        <h2 className="text-3xl font-extrabold text-[#000049] uppercase tracking-tight">
+          Dernières actualités
+        </h2>
+        <p className="mt-4 text-[#000049]/60">Le contenu de la V1 commence ici…</p>
+      </section>
+    </>
   );
 }
