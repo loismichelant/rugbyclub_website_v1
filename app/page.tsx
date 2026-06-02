@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-
 interface SectionData {
   id: string;
   content: string;
@@ -8,20 +7,14 @@ interface SectionData {
 
 async function getFirstSection(): Promise<SectionData | null> {
   try {
+    const res = await fetch("https://6a1b5e1bbc2f944754931f93.mockapi.io/v1/sections");
 
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : "http://localhost:3000";
-
-    const res = await fetch(`${baseUrl}/api/sections`);
-
-    if (!res.ok) throw new Error("Erreur lors de la récupération");
-
-    const data: SectionData[] = await res.json();
+    if (!res.ok) throw new Error("Erreur MockAPI");
     
+    const data: SectionData[] = await res.json();
     return data.length > 0 ? data[0] : null;
   } catch (error) {
-    console.error("Erreur lors du fetch de l'API locale :", error);
+    console.error("Erreur lors du fetch direct de MockAPI :", error);
     return null;
   }
 }
@@ -109,7 +102,6 @@ export default async function HomePage() {
         <div className="max-w-3xl mx-auto">
           {firstSection ? (
             <>
-              {/* On affiche le contenu venant de ton API */}
               <p className="mt-4 text-[#000049]/80 leading-relaxed text-lg font-light">
                 {firstSection.content}
               </p>
