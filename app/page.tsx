@@ -1,7 +1,35 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function HomePage() {
+interface SectionData {
+  id: string;
+  content: string;
+}
+
+async function getFirstSection(): Promise<SectionData | null> {
+  try {
+
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : "http://localhost:3000";
+
+    const res = await fetch(`${baseUrl}/api/sections`);
+
+    if (!res.ok) throw new Error("Erreur lors de la récupération");
+
+    const data: SectionData[] = await res.json();
+    
+    return data.length > 0 ? data[0] : null;
+  } catch (error) {
+    console.error("Erreur lors du fetch de l'API locale :", error);
+    return null;
+  }
+}
+
+export default async function HomePage() {
+
+  const firstSection = await getFirstSection();
+
   return (
     <>
       {/* ── HERO ── */}
@@ -76,12 +104,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── SECTION SUIVANTE ── */}
-      <section className="bg-[#f8fafc] w-full px-6 py-24 text-center">
-        <h2 className="text-3xl font-extrabold text-[#000049] uppercase tracking-tight">
-          Dernières actualités
-        </h2>
-        <p className="mt-4 text-[#000049]/60">Le contenu de la V1 commence ici…</p>
+      {/* ── SECTION SUIVANTE (DYNAMIQUE) ── */}
+      <section className="block w-full bg-[#f8fafc] px-6 py-24 text-center">
+        <div className="max-w-3xl mx-auto">
+          {firstSection ? (
+            <>
+              {/* On affiche le contenu venant de ton API */}
+              <p className="mt-4 text-[#000049]/80 leading-relaxed text-lg font-light">
+                {firstSection.content}
+              </p>
+            </>
+          ) : (
+            <>
+              {/* Code de secours si l'API ne répond pas */}
+              <h2 className="text-3xl font-extrabold text-[#000049] uppercase tracking-tight">
+                Dernières actualités
+              </h2>
+              <p className="mt-4 text-[#000049]/40">
+                Le contenu de la V1 arrive très bientôt...
+              </p>
+            </>
+          )}
+        </div>
       </section>
     </>
   );
