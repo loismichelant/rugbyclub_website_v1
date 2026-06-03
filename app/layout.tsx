@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
+import MobileMenu from "./components/MobileMenu";
 
 export const metadata: Metadata = {
   title: "Club de Rugby Les Gaulois",
@@ -58,6 +59,8 @@ export default function RootLayout({
             >
               Rejoindre le club
             </Link>
+
+            <MobileMenu />
           </nav>
         </header>
 
