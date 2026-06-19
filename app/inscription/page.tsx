@@ -2,11 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { sendTrialRequest } from "@/app/actions/sendTrialRequest";
 
-/**
- * CONFIGURATION DES DONNÉES : Cohortes de recrutement
- * Tableau d'objets immuables définissant les cycles d'inscription récurrents du club.
- */
 const COHORTES = [
   { inscription: "Septembre & Octobre", initiation: "Novembre – Décembre – Janvier", lieu: "Gymnase", indoor: true },
   { inscription: "Décembre & Janvier", initiation: "Février – Mars", lieu: "Gymnase", indoor: true },
@@ -14,34 +11,21 @@ const COHORTES = [
   { inscription: "Juillet & Août", initiation: "Septembre – Octobre", lieu: "Terrain Henri Julien", indoor: false },
 ];
 
-// FACTORISATION DES STYLES TAILWIND (Clean Code)
-// Permet de maintenir l'uniformité visuelle des formulaires et réduit la redondance des classes CSS dans le JSX.
 const inputClass =
   "w-full bg-white border border-[#000049]/15 rounded-xl px-4 py-3 text-sm text-[#000049] placeholder:text-[#000049]/30 focus:border-[#000049] focus:ring-1 focus:ring-[#000049] focus:outline-none transition-all duration-200";
 
 const labelClass =
   "block text-[11px] font-bold uppercase tracking-[0.12em] text-[#000049]/60 mb-1.5";
 
-/**
- * Page d'Inscription & d'Adhésion (Client Component)
- * Gère deux types d'actions utilisateurs : 
- * 1. Une demande d'essai gratuite locale via un formulaire capturé par l'état React.
- * 2. Une redirection externe vers SportLomo pour les affiliations officielles de Rugby Canada.
- */
 function InscriptionPage() {
-  // ÉTAT LOCAL : Gère l'affichage basculant entre le formulaire actif et le message de succès d'envoi.
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // AUTOMATISATION DES DATES
-  // Utilisation de l'API JavaScript Date pour éviter de modifier le code à chaque changement d'année civile.
   const currentYear = new Date().getFullYear();
   const nextYear = currentYear + 1;
 
-  /**
-   * Génération dynamique de la matrice des catégories d'âge.
-   * Rugby Canada calcule les catégories (U6 à U18) de manière stricte selon l'année civile de naissance.
-   * La formule `${currentYear - X}` garantit une exactitude perpétuelle de la table sans intervention humaine.
-   */
+  {/* Génération dynamique des années de naissance selon l'année civile en cours */}
   const ageBracketsDynamic = [
     { label: "Moins de 18 ans (U18)", years: `${currentYear - 18}, ${currentYear - 17}` },
     { label: "Moins de 16 ans (U16)", years: `${currentYear - 16}, ${currentYear - 15}` },
@@ -52,23 +36,39 @@ function InscriptionPage() {
     { label: "Moins de 6 ans (U6)*", years: `${currentYear - 6}, ${currentYear - 5}` },
   ];
 
-  /**
-   * Gestionnaire de soumission du formulaire d'initiation.
-   * Empêche le rechargement natif du navigateur pour un traitement asynchrone (SPA).
-   */
-  const handleSubmit = (e: { preventDefault(): void }) => {
+  {/* Soumission du formulaire d'essai à l'action serveur */}
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true); // Déclenche le rendu conditionnel de confirmation
+    setLoading(true);
+    setErrorMessage("");
+
+    const formData = new FormData(e.currentTarget);
+    
+    const data = {
+      email: formData.get("email") as string,
+      periode: formData.get("periode") as string,
+      nomParticipant: formData.get("nomParticipant") as string,
+      ageParticipant: formData.get("ageParticipant") as string,
+      contactUrgence: formData.get("contactUrgence") as string,
+    };
+
+    const response = await sendTrialRequest(data);
+
+    setLoading(false);
+    if (response.success) {
+      setSubmitted(true);
+    } else {
+      setErrorMessage(response.error || "Une erreur est survenue.");
+    }
   };
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#000049]">
-
-      {/* HEADER HERO CONTEXTUEL */}
+      
+      {/* Section Hero */}
       <section className="relative bg-[#000049] text-white py-20 px-6 text-center overflow-hidden">
         <div className="absolute inset-0 bg-linear-to-br from-[#000049] via-[#000049]/90 to-[#f368f1]/20 opacity-50" />
         <div className="relative z-10 max-w-4xl mx-auto">
-          {/* Badge affichant la saison courante calculée de façon dynamique */}
           <span className="text-xs font-bold uppercase tracking-widest text-[#f368f1] bg-[#f368f1]/10 px-4 py-1.5 rounded-full">
             Saison {currentYear}
           </span>
@@ -81,13 +81,11 @@ function InscriptionPage() {
         </div>
       </section>
 
-      {/* DISPOSITION DU CORPS DE LA PAGE : Structure asymétrique 2/3 (principal) et 1/3 (sidebar) */}
+      {/* Contenu principal de la page d'inscription */}
       <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-3 gap-10">
-
-        {/* COLONNE PRINCIPALE DE GAUCHE (Flux d'onboarding utilisateur) */}
         <div className="lg:col-span-2 space-y-10">
-
-          {/* ÉTAPE 1 : Le tunnel de conversion locale (Initiation d'essai) */}
+          
+          {/* Bloc 1: Informations et demande d'essais gratuits */}
           <section className="bg-white rounded-2xl border border-[#000049]/10 p-8 shadow-xs">
             <div className="flex items-start gap-4 mb-6 pb-6 border-b border-[#000049]/10">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f368f1] text-white text-base font-black shrink-0">
@@ -105,7 +103,7 @@ function InscriptionPage() {
               Le club offre une <strong className="font-semibold text-[#000049]">initiation gratuite de 4 semaines</strong> pour confirmer l&apos;intérêt de votre enfant avant de vous engager. Les cohortes requièrent un minimum de 6 joueurs par tranche d&apos;âge (U6-U8 / U10-U12 / U14).
             </p>
 
-            {/* Tableau HTML itératif listant les cohortes configurées */}
+            {/* Tableau récapitulatif des différentes cohortes d'intégration */}
             <div className="overflow-hidden rounded-xl border border-[#000049]/10 mb-8">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -129,13 +127,11 @@ function InscriptionPage() {
               </table>
             </div>
 
-            {/* Formulaire de capture de prospects (Demandes d'essai) */}
             <div className="bg-[#f8fafc] rounded-xl border border-[#000049]/5 p-6">
               <h3 className="text-xs font-bold uppercase tracking-wider mb-6 text-[#000049]/80">
                 Formulaire de demande d&apos;essai
               </h3>
 
-              {/* Rendu conditionnel basé sur le state 'submitted' */}
               {!submitted ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -143,6 +139,7 @@ function InscriptionPage() {
                       <label className={labelClass}>Courriel *</label>
                       <input
                         type="email"
+                        name="email"
                         required
                         className={inputClass}
                         placeholder="parent@exemple.com"
@@ -150,12 +147,12 @@ function InscriptionPage() {
                     </div>
                     <div>
                       <label className={labelClass}>Période souhaitée *</label>
-                      <select required className={inputClass}>
+                      <select name="periode" required className={inputClass}>
                         <option value="">Choisir une période...</option>
-                        <option value="nov-jan">Novembre – Janvier (Gymnase)</option>
-                        <option value="feb-mar">Février – Mars (Gymnase)</option>
-                        <option value="may-jun">Mai – Juin (Henri Julien)</option>
-                        <option value="sep-oct">Septembre – Octobre (Henri Julien)</option>
+                        <option value="Novembre – Janvier (Gymnase)">Novembre – Janvier (Gymnase)</option>
+                        <option value="Février – Mars (Gymnase)">Février – Mars (Gymnase)</option>
+                        <option value="Mai – Juin (Henri Julien)">Mai – Juin (Henri Julien)</option>
+                        <option value="Septembre – Octobre (Henri Julien)">Septembre – Octobre (Henri Julien)</option>
                       </select>
                     </div>
                   </div>
@@ -165,6 +162,7 @@ function InscriptionPage() {
                       <label className={labelClass}>Nom & Prénom du participant *</label>
                       <input
                         type="text"
+                        name="nomParticipant"
                         required
                         className={inputClass}
                         placeholder="Nom de l'enfant"
@@ -174,6 +172,7 @@ function InscriptionPage() {
                       <label className={labelClass}>Âge du participant *</label>
                       <input
                         type="number"
+                        name="ageParticipant"
                         required
                         min="5"
                         max="18"
@@ -187,23 +186,30 @@ function InscriptionPage() {
                     <label className={labelClass}>Contact & cellulaire en cas d&apos;urgence *</label>
                     <input
                       type="text"
+                      name="contactUrgence"
                       required
                       className={inputClass}
                       placeholder="Nom du parent – (514) 123-4567"
                     />
                   </div>
 
+                  {errorMessage && (
+                    <div className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded-xl p-3">
+                      {errorMessage}
+                    </div>
+                  )}
+
                   <div className="pt-2">
                     <button
                       type="submit"
-                      className="bg-[#000049] text-white font-bold text-xs uppercase tracking-widest px-6 py-3.5 rounded-xl hover:bg-[#f368f1] transition-colors duration-200 cursor-pointer"
+                      disabled={loading}
+                      className="bg-[#000049] text-white font-bold text-xs uppercase tracking-widest px-6 py-3.5 rounded-xl hover:bg-[#f368f1] transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Envoyer la demande
+                      {loading ? "Envoi en cours..." : "Envoyer la demande"}
                     </button>
                   </div>
                 </form>
               ) : (
-                /* Message de confirmation d'envoi UI / UX (Accessible et rassurant) */
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
                   <h4 className="font-bold text-emerald-800 uppercase tracking-wide text-xs mb-1">
                     Demande envoyée avec succès
@@ -216,7 +222,7 @@ function InscriptionPage() {
             </div>
           </section>
 
-          {/* ÉTAPE 2 : Redirection réglementaire (Affiliation officielle externe) */}
+          {/* Bloc 2: Processus d'affiliation officiel via SportLomo */}
           <section className="bg-white rounded-2xl border border-[#000049]/10 p-8 shadow-xs">
             <div className="flex items-start gap-4 mb-6 pb-6 border-b border-[#000049]/10">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#000049] text-white text-base font-black shrink-0">
@@ -234,7 +240,6 @@ function InscriptionPage() {
               Votre enfant souhaite porter fièrement les couleurs des Gaulois pour toute la saison ? L&apos;inscription officielle et l&apos;émission des licences obligatoires se font sur la plateforme officielle de <strong className="font-semibold text-[#000049]">Rugby Canada (SportLomo)</strong>.
             </p>
 
-            {/* Lien d'affiliation sortant sécurisé par les normes noopener/noreferrer */}
             <div className="bg-[#f8fafc] border border-[#000049]/10 rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <p className="text-[#000049] font-bold uppercase tracking-wide text-xs">
@@ -259,16 +264,15 @@ function InscriptionPage() {
           </section>
         </div>
 
-        {/* SIDEBAR DE DROITE (Prend 1 colonne sur 3 en mode desktop) */}
+        {/* Barre latérale droite contenant les compléments d'informations */}
         <div className="lg:col-span-1 space-y-6">
-
-          {/* Encart financier / Informations de tarification */}
+          
+          {/* Détails sur la validité de l'inscription */}
           <div className="bg-white rounded-2xl border border-[#000049]/10 p-6 shadow-xs">
             <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#f368f1]">Tarification</span>
             <h3 className="text-lg font-black uppercase tracking-tight text-[#000049] mt-1 mb-4">
               Transparence totale
             </h3>
-
             <div className="space-y-3 text-xs font-light text-[#000049]/70 leading-relaxed">
               <div className="bg-[#f8fafc] rounded-xl p-4 border border-[#000049]/5">
                 <p className="font-bold text-[#000049] mb-1">Ouverture des inscriptions</p>
@@ -276,24 +280,20 @@ function InscriptionPage() {
               </div>
               <div className="bg-[#f8fafc] rounded-xl p-4 border border-[#000049]/5">
                 <p className="font-bold text-[#000049] mb-1">Durée de validité</p>
-                {/* Dynamisation de l'année d'expiration de la couverture d'assurance de la fédération */}
                 <p>La licence couvre l&apos;intégralité des activités et assurances jusqu&apos;au <strong>30 avril {nextYear}</strong>.</p>
               </div>
             </div>
-
             <div className="mt-4 pt-4 border-t border-[#000049]/10 flex items-center gap-2 text-[10px] text-[#000049]/50 font-medium uppercase tracking-wider">
               <span>Aucun frais caché pour les tournois.</span>
             </div>
           </div>
 
-          {/* Encart réglementaire de l'évaluation des catégories d'âges par le système fédéral */}
+          {/* Table de correspondance des tranches d'âge par rapport aux années civiles */}
           <div className="bg-white rounded-2xl border border-[#000049]/10 p-6 shadow-xs">
             <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#f368f1]">Catégories</span>
             <h3 className="text-lg font-black uppercase tracking-tight text-[#000049] mt-1 mb-4">
               Tranches d&apos;âge
             </h3>
-
-            {/* Itération sur le tableau des catégories d'âges auto-généré plus haut */}
             <div className="space-y-1.5">
               {ageBracketsDynamic.map((item, idx) => (
                 <div
@@ -307,17 +307,14 @@ function InscriptionPage() {
                 </div>
               ))}
             </div>
-
             <p className="text-[10px] text-[#000049]/40 font-light italic mt-4 leading-relaxed">
               * L&apos;âge est calculé au cours de l&apos;année civile. La catégorie U6 s&apos;adresse aux enfants de 5 ans et plus.
             </p>
           </div>
 
-          {/* Traceur système technique indiquant la bonne synchronisation de la date d'exécution */}
           <div className="text-[10px] text-[#000049]/30 text-center font-mono">
             Catégories synchronisées sur l&apos;année {currentYear}
           </div>
-
         </div>
       </div>
     </main>

@@ -15,11 +15,13 @@ export default function MobileMenu() {
   const [headerHeight, setHeaderHeight] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
+  {/* Récupération de la hauteur du header pour positionner le menu mobile juste en dessous */}
   useEffect(() => {
     const header = document.querySelector("header");
     if (header) setHeaderHeight(header.offsetHeight);
   }, []);
 
+  {/* Blocage du défilement de la page en arrière-plan quand le menu est ouvert */}
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -31,7 +33,7 @@ export default function MobileMenu() {
     };
   }, [open]);
 
-  // Close on outside click
+  {/* Fermeture automatique du menu lors d'un clic à l'extérieur */}
   useEffect(() => {
     if (!open) return;
     function handleClick(e: MouseEvent) {
@@ -45,6 +47,7 @@ export default function MobileMenu() {
 
   return (
     <div ref={ref} className="md:hidden">
+      {/* Bouton burger avec animation CSS pour former une croix */}
       <button
         aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
         aria-expanded={open}
@@ -62,6 +65,7 @@ export default function MobileMenu() {
         />
       </button>
 
+      {/* Conteneur du menu plein écran sous le header */}
       {open && (
         <div
           className="fixed inset-x-0 bottom-0 z-40 bg-[#f8fafc] flex flex-col px-6 py-8 gap-2 border-t border-[#000049]/10 shadow-xl"
